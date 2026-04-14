@@ -2,8 +2,8 @@ import { io } from "socket.io-client";
 import { useState, useEffect } from "react";
 import "./App.css";
 
-function App () {
-  const [socket, setsocket] = useState(null)
+function App() {
+  const [socket, setsocket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
@@ -18,12 +18,25 @@ function App () {
     };
 
     setMessages([...messages, newMessage]);
+
+    socket.emit("ai-message", input);
     setInput("");
   };
 
   useEffect(() => {
-     let socketInstance = io("http://localhost:3000");
-      setsocket(socketInstance)
+    const socketInstance = io("http://localhost:3000");
+    setsocket(socketInstance);
+
+    socketInstance.on("ai-message-response", (response) => {
+      const botmessage = {
+        id: Date.now(),
+        text: response.response,
+        sender: "bot",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setMessages((prevMessages) => [...prevMessages, botmessage]);
+    });
+
   }, []);
 
   const handleKeyPress = (e) => {
